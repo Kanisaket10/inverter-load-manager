@@ -1,4 +1,4 @@
-import {useState, useEffect} from 'react';
+import { useEffect, useState } from "react";
 import "./App.css";
 
 const API = "http://localhost:8000/api";
@@ -7,25 +7,24 @@ function App() {
   const [appliances, setAppliances] = useState([]);
   const [currentLoad, setCurrentLoad] = useState(0);
   const [remainingCapacity, setRemainingCapacity] = useState(800);
+
   const [name, setName] = useState("");
   const [wattage, setWattage] = useState("");
   const [priority, setPriority] = useState("");
 
-
   const loadAppliances = async () => {
-    try{
+    try {
       const response = await fetch(`${API}/appliances`);
       const data = await response.json();
 
       setAppliances(data.appliances);
       setCurrentLoad(data.current_load);
       setRemainingCapacity(data.remaining_capacity);
-
     } catch (error) {
       console.error("Failed to load appliances:", error);
     }
   };
-   
+
   useEffect(() => {
     loadAppliances();
   }, []);
@@ -33,13 +32,13 @@ function App() {
   const addAppliance = async (e) => {
     e.preventDefault();
 
-    if(!name.trim() || !wattage || !priority) {
-      alert("Please fill in all fields.");
+    if (!name.trim() || !wattage || !priority) {
+      alert("Please fill all fields");
       return;
     }
 
-    if(Number(wattage) > 800) {
-      alert("Wattage cannot exceeds 800W");
+    if (Number(wattage) > 800) {
+      alert("Wattage cannot exceed 800W");
       return;
     }
 
@@ -49,70 +48,74 @@ function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name: name.trim(), wattage: Number(wattage), priority: Number(priority)
-         }),
+        body: JSON.stringify({
+          name: name.trim(),
+          wattage: Number(wattage),
+          priority: Number(priority),
+        }),
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
-        alert(data.error || "Failed to add appliance.");
+        alert(data.detail || "Failed to add appliance");
         return;
       }
 
       setName("");
       setWattage("");
       setPriority("");
+
       loadAppliances();
     } catch (error) {
-      console.error("Failed to add appliance:", error);
+      alert("Backend is not running");
     }
   };
 
-  const turnOn = async (id) => { 
-    try{
-      const response = await fetch(`${API}/appliances/${id}/turn_on`, {
+  const turnOn = async (id) => {
+    try {
+      const response = await fetch(`${API}/appliances/${id}/on`, {
         method: "POST",
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.error || "Failed to turn on appliance.");
+        alert(data.detail || "Cannot turn on appliance");
         return;
       }
 
       loadAppliances();
-    }catch(error){
-      alert("Failed to turn on appliance:", error); 
+    } catch (error) {
+      alert("Something went wrong");
     }
   };
 
   const turnOff = async (id) => {
-    try{
-      const response = await fetch(`${API}/appliances/${id}/turn_off`, {
+    try {
+      const response = await fetch(`${API}/appliances/${id}/off`, {
         method: "POST",
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.error || "Failed to turn off appliance.");
+        alert(data.detail || "Cannot turn off appliance");
         return;
       }
 
       loadAppliances();
-    }catch(error){
-      alert("Failed to turn off appliance:", error); 
+    } catch (error) {
+      alert("Something went wrong");
     }
   };
 
   const deleteAppliance = async (id) => {
-    if(!window.confirm("Are you sure you want to delete this appliance?")) {
+    if (!window.confirm("Delete this appliance?")) {
       return;
     }
-    
-    try{
+
+    try {
       const response = await fetch(`${API}/appliances/${id}`, {
         method: "DELETE",
       });
@@ -120,28 +123,27 @@ function App() {
       const data = await response.json();
 
       if (!response.ok) {
-        alert(data.error || "Failed to delete appliance.");
+        alert(data.detail || "Cannot delete appliance");
         return;
       }
 
       loadAppliances();
-    }catch(error){
-      alert("Failed to delete appliance:", error); 
+    } catch (error) {
+      alert("Something went wrong");
     }
   };
 
   return (
-    <div className="App">
+    <div className="app">
       <header>
         <h1>Inverter Load Manager</h1>
         <p>Manage your appliances within an 800W inverter capacity</p>
       </header>
 
       <main>
-
-        <section className="Dashboard">
+        <section className="dashboard">
           <div className="card">
-            <span> Inverter Capacity</span>
+            <span>Inverter Capacity</span>
             <strong>800W</strong>
           </div>
 
@@ -157,12 +159,12 @@ function App() {
         </section>
 
         <section className="form-section">
-          <h2>Add New Appliance</h2>
+          <h2>Add Appliance</h2>
 
           <form onSubmit={addAppliance}>
             <input
               type="text"
-              placeholder="Appliance Name"
+              placeholder="Appliance name"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -186,17 +188,20 @@ function App() {
             <button type="submit">Add Appliance</button>
           </form>
 
-          <small>Lower priority number means higher importance</small>
-
+          <small>Lower priority number means higher importance.</small>
         </section>
 
         <section className="appliances">
           <div className="section-header">
-          <h2>Appliances</h2>
-          <button className="refresh" onClick={loadAppliances}>Refresh</button>
+            <h2>Appliances</h2>
+            <button className="refresh" onClick={loadAppliances}>
+              Refresh
+            </button>
           </div>
 
-          {appliances.length === 0 ? (<div className="empty"> No appliances added yet </div>) : (
+          {appliances.length === 0 ? (
+            <div className="empty">No appliances added yet.</div>
+          ) : (
             <div className="table-container">
               <table>
                 <thead>
@@ -208,39 +213,50 @@ function App() {
                     <th>Action</th>
                   </tr>
                 </thead>
-                 
+
                 <tbody>
-                  {appliances.map((appliance)=>(
-                    <><tr key={appliance.id}>
+                  {appliances.map((appliance) => (
+                    <tr key={appliance.id}>
                       <td>{appliance.name}</td>
+
                       <td>{appliance.wattage}W</td>
+
                       <td>{appliance.priority}</td>
 
                       <td>
-                        <span className={status} $ {...appliance.state.toLowerCase()}}>
-                        {appliance.state}
+                        <span
+                          className={`status ${appliance.state.toLowerCase()}`}
+                        >
+                          {appliance.state}
                         </span>
                       </td>
 
-                      <td className="action"> {appliance.state === "RUNNING" ? (
-                      <button
-                        className="off"
-                        onClick={() => turnOff(appliance.id)}
-                      >
-                        Turn Off
-                      </button>
-                    ) : (
-                      <button className="on" onClick={() => turnOn(appliance.id)}>
-                        Turn On
-                      </button>
-                    )}
+                      <td className="actions">
+                        {appliance.state === "RUNNING" ? (
+                          <button
+                            className="off"
+                            onClick={() => turnOff(appliance.id)}
+                          >
+                            Turn Off
+                          </button>
+                        ) : (
+                          <button
+                            className="on"
+                            onClick={() => turnOn(appliance.id)}
+                          >
+                            Turn On
+                          </button>
+                        )}
 
-                        <button className="delete" onClick={() => deleteAppliance(appliance.id)}>
+                        <button
+                          className="delete"
+                          onClick={() => deleteAppliance(appliance.id)}
+                        >
                           Delete
                         </button>
                       </td>
                     </tr>
-                   ))}
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -248,20 +264,22 @@ function App() {
         </section>
 
         <section className="rules">
-          <h2>Rules</h2>
+          <h2>System Rules</h2>
+
           <ul>
-            <li>Maximum inverter capacity is 800W</li>
+            <li>Maximum inverter capacity is 800W.</li>
+            <li>Lower priority number means higher priority.</li>
             <li>Only lower-priority running appliances can be shed.</li>
-            <li>When turning on an appliance, if the total load exceeds 800W, lower priority appliances will be shed automatically</li>
-            <li>Lower priority number means higher importance</li>
+            <li>
+              Shed appliances can automatically restore when capacity is
+              available.
+            </li>
             <li>Explicitly turned OFF appliances never auto-restore.</li>
           </ul>
-        </section>  
-
+        </section>
       </main>
     </div>
   );
 }
 
 export default App;
-      
